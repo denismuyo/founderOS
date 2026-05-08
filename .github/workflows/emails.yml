@@ -1,0 +1,52 @@
+name: Founder OS Emails
+
+on:
+  schedule:
+    # 5AM Kenya Time (2AM UTC)
+    - cron: '0 2 * * *'
+
+    # 9PM Kenya Time (6PM UTC)
+    - cron: '0 18 * * *'
+
+  workflow_dispatch:
+
+jobs:
+  send-email:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send Founder OS Email
+        run: |
+          DAY=$(date -u +%u)
+          HOUR=$(date -u +%H)
+
+          if [ "$DAY" -eq 1 ] || [ "$DAY" -eq 5 ]; then
+            COMPANY="Mirisa Properties Ltd"
+          elif [ "$DAY" -ge 2 ] && [ "$DAY" -le 4 ]; then
+            COMPANY="VersaTech Global Solutions"
+          elif [ "$DAY" -eq 6 ]; then
+            COMPANY="Freight Company + Denvin Tours"
+          else
+            COMPANY="BridgOne Hub + Strategic Planning"
+          fi
+
+          if [ "$HOUR" -eq 2 ]; then
+            SUBJECT="🌅 Morning Brief"
+            MESSAGE="Hi Nzioka, today you are working on $COMPANY."
+          else
+            SUBJECT="🌙 Evening Prep"
+            MESSAGE="Hi Nzioka, tomorrow prepare for $COMPANY."
+          fi
+
+          curl https://api.emailjs.com/api/v1.0/email/send \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "service_id":"${{ secrets.EMAILJS_SERVICE_ID }}",
+              "template_id":"${{ secrets.EMAILJS_TEMPLATE_ID }}",
+              "user_id":"${{ secrets.EMAILJS_PUBLIC_KEY }}",
+              "template_params":{
+                "to_email":"denisnzioka63@gmail.com",
+                "subject":"'"$SUBJECT"'",
+                "message":"'"$MESSAGE"'"
+              }
+            }'
